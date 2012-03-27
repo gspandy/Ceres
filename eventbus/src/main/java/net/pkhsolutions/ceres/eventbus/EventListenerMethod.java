@@ -26,8 +26,9 @@ import java.lang.annotation.*;
  * invoked for all events whose payload is of type
  * <code>String</code>: <p>
  * <code>@EventListenerMethod handleStringEvents(Event&lt;String&gt; event)</code>
- * <p> A method with a payload type of
- * <code>Object</code> will receive all events, for example: <p>
+ * <p> The payload type can also be a super type of the actual event payload
+ * type. For example, a method with a payload type of
+ * <code>Object</code> will receive all events: <p>
  * <code>@EventListenerMethod handleAllEvents(Event&lt;Object&gt; event)</code>
  * <p> Wildcards may <b>not</b> be used in the parameter. For example, the
  * following <b>will not work</b>: <p>

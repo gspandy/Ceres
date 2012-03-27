@@ -16,7 +16,7 @@
 package net.pkhsolutions.ceres.eventbus;
 
 /**
- * Interface defining an event bus that publishes events to listeners. Event
+ * This interface defines an event bus that publishes events to listeners. Event
  * buses can be chained in a parent-child hierarchy. Events will always
  * propagate down to the child buses, but only up to the parent bus if the scope
  * is {@link EventScope#GLOBAL}. Any object whose class contains a method with
@@ -65,7 +65,8 @@ public interface EventBus {
     void publishEvent(Event<?> event);
 
     /**
-     * Registers the specified listener. A weak reference will be used to store
+     * Registers the specified listener. Unless stated otherwise in the
+     * implementation's documentation, a weak reference will be used to store
      * the listener, so forgetting to unregister the listener will not prevent
      * it from being garbage collected. To actually get notified of events, the
      * listener should define one or more methods and annotate them with {@link EventListenerMethod}.
