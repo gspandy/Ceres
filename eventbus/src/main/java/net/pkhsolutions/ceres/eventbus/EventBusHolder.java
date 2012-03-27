@@ -10,6 +10,7 @@ package net.pkhsolutions.ceres.eventbus;
  * This class is thread safe.
  *
  * @author Petter Holmström
+ * @since 1.0
  */
 public class EventBusHolder {
 
@@ -27,7 +28,7 @@ public class EventBusHolder {
     /**
      * Sets the event bus instance.
      *
-     * @param eventBus the event bus instance, or null.
+     * @param eventBus the event bus instance, may be null.
      */
     public static void setEventBus(EventBus eventBus) {
         strategy.set(eventBus);

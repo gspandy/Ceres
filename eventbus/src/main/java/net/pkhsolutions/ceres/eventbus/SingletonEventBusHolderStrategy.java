@@ -20,6 +20,7 @@ package net.pkhsolutions.ceres.eventbus;
  * field that is accessible by all threads. This class is thread safe.
  *
  * @author Petter Holmström
+ * @since 1.0
  */
 public class SingletonEventBusHolderStrategy implements EventBusHolderStrategy {
 

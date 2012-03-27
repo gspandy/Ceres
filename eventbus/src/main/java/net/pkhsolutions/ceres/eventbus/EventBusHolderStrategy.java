@@ -19,6 +19,7 @@ package net.pkhsolutions.ceres.eventbus;
  * Strategy interface that is used by {@link EventBusHolder}
  *
  * @author Petter Holmström
+ * @since 1.0
  */
 public interface EventBusHolderStrategy {
 
@@ -32,7 +33,7 @@ public interface EventBusHolderStrategy {
     /**
      * Sets the event bus instance.
      *
-     * @param eventBus the event bus instance to set, or null.
+     * @param eventBus the event bus instance to set, may be null.
      */
     void set(EventBus eventBus);
 }

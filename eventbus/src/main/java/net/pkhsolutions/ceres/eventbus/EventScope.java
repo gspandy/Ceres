@@ -21,6 +21,7 @@ package net.pkhsolutions.ceres.eventbus;
  * event was originally published) or propagate to all event buses.
  *
  * @author Petter Holmström
+ * @since 1.0
  */
 public enum EventScope {
 

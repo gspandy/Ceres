@@ -20,6 +20,7 @@ package net.pkhsolutions.ceres.eventbus;
  * store the event bus instance. This class is thread safe.
  *
  * @author Petter Holmström
+ * @since 1.0
  */
 public class ThreadLocalEventBusHolderStrategy implements EventBusHolderStrategy {
 
