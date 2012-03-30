@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
  * @see AsynchronousEventBus
  *
  * @author Petter Holmström
+ * @since 1.0
  */
 public abstract class AbstractEventBus implements EventBus {
 
