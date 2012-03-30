@@ -15,6 +15,9 @@
  */
 package net.pkhsolutions.ceres.eventbus;
 
+import java.util.LinkedList;
+import java.util.Queue;
+
 /**
  * This class represents an event published on an event bus. The event has a
  * payload that can be any object. An event listener must know which payload
@@ -28,10 +31,10 @@ package net.pkhsolutions.ceres.eventbus;
 public class Event<T> {
 
     private final T payload;
-    private final EventBus originalEventBus;
     private final EventScope scope;
     private final long timestamp;
     private final Class<T> payloadType;
+    private final Queue<EventBus> publicationHistory = new LinkedList<EventBus>();
 
     /**
      * Creates a new
@@ -48,7 +51,7 @@ public class Event<T> {
         assert scope != null : "scope must not be null";
 
         this.payload = payload;
-        this.originalEventBus = originalEventBus;
+        publicationHistory.add(originalEventBus);
         this.scope = scope;
         this.timestamp = System.currentTimeMillis();
         payloadType = (Class<T>) payload.getClass();
@@ -79,8 +82,36 @@ public class Event<T> {
      *
      * @return the event bus, never null.
      */
-    public EventBus getOriginalEventBus() {
-        return originalEventBus;
+    public synchronized EventBus getOriginalEventBus() {
+        return publicationHistory.peek();
+    }
+
+    /**
+     * Gets the publication history of the event in the form of a queue
+     * containing all event buses on which the event has been published. The
+     * head of the queue will contain the original event bus.
+     *
+     * @see #getOriginalEventBus()
+     * @see
+     * #addEventBusToPublicationHistory(net.pkhsolutions.ceres.eventbus.EventBus)
+     *
+     * @return a queue of event buses, never null.
+     */
+    public synchronized Queue<EventBus> getPublicationHistory() {
+        return new LinkedList<EventBus>(publicationHistory);
+    }
+
+    /**
+     * Adds the specified event bus to the publication history queue. All event
+     * buses that publish this event should call this method. To prevent an even
+     * from being published multiple times on the same bus, the bus should also
+     * check that it has not been added to the publication history earlier.
+     *
+     * @param eventBus the event bus to add, must not be null.
+     */
+    protected synchronized void addEventBusToPublicationHistory(EventBus eventBus) {
+        assert eventBus != null : "eventBus must not be null";
+        publicationHistory.add(eventBus);
     }
 
     /**
