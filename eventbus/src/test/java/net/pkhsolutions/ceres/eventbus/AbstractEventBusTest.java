@@ -47,6 +47,7 @@ public abstract class AbstractEventBusTest {
     EventBus parentBus;
     EventBus childBus1;
     EventBus childBus2;
+    EventBus grandChildBus1;
 
     @Before
     public void setUp() {
@@ -66,6 +67,9 @@ public abstract class AbstractEventBusTest {
 
         childListener2 = mock(ExampleListener.class);
         childBus2.registerEventListener(childListener2);
+
+        grandChildBus1 = createEventBus();
+        grandChildBus1.setParentBus(childBus1);
     }
 
     protected abstract EventBus createEventBus();
@@ -99,9 +103,18 @@ public abstract class AbstractEventBusTest {
         return new EventMatcher<T>(expectedEventBus, expectedPayload);
     }
 
+    /**
+     * This method can be used by asynchronous event buses to make sure all
+     * threads have finished before verifying the result. Default implementation
+     * does nothing.
+     */
+    protected void waitForEventsToBecomePublished() throws Exception {
+    }
+
     @Test
-    public void localStringEvent() {
+    public void localStringEvent() throws Exception {
         childBus1.publishEvent("hello world", EventScope.LOCAL);
+        waitForEventsToBecomePublished();
         verify(childListener1).stringEventsOnly(argThat(matchesEvent(childBus1, "hello world")));
         verify(childListener1).allEvents(argThat(matchesEvent(childBus1, (Object) "hello world")));
         verifyNoMoreInteractions(childListener1);
@@ -109,8 +122,9 @@ public abstract class AbstractEventBusTest {
     }
 
     @Test
-    public void localIntegerEvent() {
+    public void localIntegerEvent() throws Exception {
         childBus1.publishEvent(1234, EventScope.LOCAL);
+        waitForEventsToBecomePublished();
         verify(childListener1).integerEventsOnly(argThat(matchesEvent(childBus1, 1234)));
         verify(childListener1).allEvents(argThat(matchesEvent(childBus1, (Object) 1234)));
         verifyNoMoreInteractions(childListener1);
@@ -118,16 +132,18 @@ public abstract class AbstractEventBusTest {
     }
 
     @Test
-    public void localBooleanEvent() {
+    public void localBooleanEvent() throws Exception {
         childBus1.publishEvent(true, EventScope.LOCAL);
+        waitForEventsToBecomePublished();
         verify(childListener1).allEvents(argThat(matchesEvent(childBus1, (Object) true)));
         verifyNoMoreInteractions(childListener1);
         verifyZeroInteractions(childListener2, parentListener);
     }
 
     @Test
-    public void globalStringEvent() {
+    public void globalStringEvent() throws Exception {
         childBus1.publishEvent("hello world", EventScope.GLOBAL);
+        waitForEventsToBecomePublished();
 
         verify(childListener1).stringEventsOnly(argThat(matchesEvent(childBus1, "hello world")));
         verify(childListener1).allEvents(argThat(matchesEvent(childBus1, (Object) "hello world")));
@@ -137,6 +153,23 @@ public abstract class AbstractEventBusTest {
 
         verify(childListener2).stringEventsOnly(argThat(matchesEvent(childBus1, "hello world")));
         verify(childListener2).allEvents(argThat(matchesEvent(childBus1, (Object) "hello world")));
+
+        verifyNoMoreInteractions(childListener1, childListener2, parentListener);
+    }
+
+    @Test
+    public void propagationOfGlobalEvent() throws Exception {
+        grandChildBus1.publishEvent("hello world", EventScope.GLOBAL);
+        waitForEventsToBecomePublished();
+
+        verify(childListener1).stringEventsOnly(argThat(matchesEvent(grandChildBus1, "hello world")));
+        verify(childListener1).allEvents(argThat(matchesEvent(grandChildBus1, (Object) "hello world")));
+
+        verify(parentListener).stringEventsOnly(argThat(matchesEvent(grandChildBus1, "hello world")));
+        verify(parentListener).allEvents(argThat(matchesEvent(grandChildBus1, (Object) "hello world")));
+
+        verify(childListener2).stringEventsOnly(argThat(matchesEvent(grandChildBus1, "hello world")));
+        verify(childListener2).allEvents(argThat(matchesEvent(grandChildBus1, (Object) "hello world")));
 
         verifyNoMoreInteractions(childListener1, childListener2, parentListener);
     }
