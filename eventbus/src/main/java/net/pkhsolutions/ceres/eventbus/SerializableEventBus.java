@@ -36,6 +36,8 @@ import java.util.Set;
  */
 public class SerializableEventBus implements EventBus, Serializable {
 
+    private static final long serialVersionUID = -5653511946728206137L;
+
     /**
      * Factory interface to be used by {@link SerializableEventBus} to create
      * new wrapped event buses upon object creation and deserialization.
@@ -143,6 +145,8 @@ public class SerializableEventBus implements EventBus, Serializable {
     public static SerializableEventBus createSynchronousSerializableEventBus() {
         return new SerializableEventBus(new EventBusFactory() {
 
+            private static final long serialVersionUID = 8651545956045591819L;
+
             @Override
             public EventBus createEventBus() {
                 return new SynchronousEventBus();
@@ -157,6 +161,8 @@ public class SerializableEventBus implements EventBus, Serializable {
      */
     public static SerializableEventBus createAsynchronousSerializableEventBus() {
         return new SerializableEventBus(new EventBusFactory() {
+
+            private static final long serialVersionUID = 8651545956045591819L;
 
             @Override
             public EventBus createEventBus() {
