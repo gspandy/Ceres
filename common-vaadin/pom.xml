@@ -7,7 +7,7 @@
         <artifactId>master-pom</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <groupId>net.pkhsolutions.fenix</groupId>
+    <groupId>net.pkhsolutions.ceres</groupId>
     <artifactId>common-vaadin</artifactId>
     <version>1.0-SNAPSHOT</version>
     <name>Ceres Common Vaadin</name>
