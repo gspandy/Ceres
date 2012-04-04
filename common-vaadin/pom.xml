@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>net.pkhsolutions.ceres</groupId>
+        <artifactId>master-pom</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <groupId>net.pkhsolutions.fenix</groupId>
+    <artifactId>common-vaadin</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>Ceres Common Vaadin</name>
+    <dependencies>
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-web-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+</project>
