@@ -31,6 +31,9 @@ public class EventBusHolder {
 
     private static volatile EventBusHolderStrategy strategy = new ThreadLocalEventBusHolderStrategy();
 
+    private EventBusHolder() {
+    }
+
     /**
      * Gets the event bus instance.
      *
