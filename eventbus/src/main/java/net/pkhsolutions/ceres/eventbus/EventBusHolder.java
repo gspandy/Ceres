@@ -15,6 +15,8 @@
  */
 package net.pkhsolutions.ceres.eventbus;
 
+import net.pkhsolutions.ceres.common.holder.Holder;
+
 /**
  * This class provides static methods for setting and accessing an event bus. It
  * can be used to simplify code where multiple objects need access to the event
@@ -27,9 +29,7 @@ package net.pkhsolutions.ceres.eventbus;
  * @author Petter Holmström
  * @since 1.0
  */
-public class EventBusHolder {
-
-    private static volatile EventBusHolderStrategy strategy = new ThreadLocalEventBusHolderStrategy();
+public class EventBusHolder extends Holder<EventBus> {
 
     private EventBusHolder() {
     }
@@ -40,7 +40,7 @@ public class EventBusHolder {
      * @return the event bus instance, or null if none has been set.
      */
     public static EventBus getEventBus() {
-        return strategy.get();
+        return getStrategy(EventBusHolder.class).get();
     }
 
     /**
@@ -49,20 +49,6 @@ public class EventBusHolder {
      * @param eventBus the event bus instance, may be null.
      */
     public static void setEventBus(EventBus eventBus) {
-        strategy.set(eventBus);
-    }
-
-    /**
-     * Sets the strategy to use for storing and retrieving the event bus
-     * instance.
-     *
-     * @param strategy the strategy to use, or null to use a {@link ThreadLocalEventBusHolderStrategy}
-     * (the default).
-     */
-    public static synchronized void setStrategy(EventBusHolderStrategy strategy) {
-        if (strategy == null) {
-            strategy = new ThreadLocalEventBusHolderStrategy();
-        }
-        EventBusHolder.strategy = strategy;
+        getStrategy(EventBusHolder.class).set(eventBus);
     }
 }
