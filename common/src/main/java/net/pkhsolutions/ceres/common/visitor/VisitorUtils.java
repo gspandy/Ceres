@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
+import net.pkhsolutions.ceres.common.annotations.NeverReturnsNull;
 
 /**
  * Utility class for working with the Visitor pattern.
@@ -49,6 +50,7 @@ public final class VisitorUtils {
      * @param <T> the type of visitable items.
      * @return a new visitable collection, never null.
      */
+    @NeverReturnsNull
     public static <T> VisitableCollection<T> visitableLinkedList() {
         return new VisitableCollectionWrapper<T>(new LinkedList<T>());
     }
@@ -60,6 +62,7 @@ public final class VisitorUtils {
      * @param <T> the type of visitable items.
      * @return a new visitable collection, never null.
      */
+    @NeverReturnsNull
     public static <T> VisitableCollection<T> visitableArrayList() {
         return new VisitableCollectionWrapper<T>(new ArrayList<T>());
     }
@@ -71,6 +74,7 @@ public final class VisitorUtils {
      * @param <T> the type of visitable items.
      * @return a new visitable collection, never null.
      */
+    @NeverReturnsNull
     public static <T> VisitableCollection<T> visitableHashSet() {
         return new VisitableCollectionWrapper<T>(new HashSet<T>());
     }

@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import net.pkhsolutions.ceres.common.annotations.NeverReturnsNull;
 
 /**
  * This is a utility class for object cloning.
@@ -59,6 +60,7 @@ public final class CloneUtil {
      * @throws CloneNotSupportedException if the deep clone could not be
      * completed.
      */
+    @NeverReturnsNull
     public static <T extends Cloneable> T deepClone(T shallowClone)
             throws CloneNotSupportedException {
         assert shallowClone != null : "shallowClone must not be null";

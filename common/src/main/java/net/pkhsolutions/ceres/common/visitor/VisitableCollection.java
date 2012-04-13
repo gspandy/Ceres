@@ -16,6 +16,7 @@
 package net.pkhsolutions.ceres.common.visitor;
 
 import java.util.Collection;
+import net.pkhsolutions.ceres.common.annotations.NeverReturnsNull;
 
 /**
  * This interface represents a collection of items that can be visited by a
@@ -51,6 +52,7 @@ public interface VisitableCollection<T> {
      *
      * @return a collection, never null.
      */
+    @NeverReturnsNull
     Collection<T> getItems();
 
     /**

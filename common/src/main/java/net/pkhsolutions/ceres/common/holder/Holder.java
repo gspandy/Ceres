@@ -17,6 +17,7 @@ package net.pkhsolutions.ceres.common.holder;
 
 import java.util.HashMap;
 import java.util.Map;
+import net.pkhsolutions.ceres.common.annotations.NeverReturnsNull;
 
 /**
  * A holder is a class that makes a certain object available using a static
@@ -75,6 +76,7 @@ public abstract class Holder<T> {
      * @param holderClass the holder class, must not be null.
      * @return the holder strategy, never null.
      */
+    @NeverReturnsNull
     public synchronized static <T> HolderStrategy<T> getStrategy(Class<? extends Holder<T>> holderClass) {
         assert holderClass != null : "holderClass must not be null";
         HolderStrategy<T> strategy = (HolderStrategy<T>) strategies.get(holderClass);

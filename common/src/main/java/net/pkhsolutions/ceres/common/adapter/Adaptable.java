@@ -15,6 +15,8 @@
  */
 package net.pkhsolutions.ceres.common.adapter;
 
+import net.pkhsolutions.ceres.common.annotations.NeverReturnsNull;
+
 /**
  * Interface to be implemented by classes that can be adapted to other classes.
  *
@@ -39,5 +41,6 @@ public interface Adaptable extends java.io.Serializable {
      * @throws UnsupportedAdapterException if the adapter class is not
      * supported.
      */
+    @NeverReturnsNull
     <T> T adapt(Class<T> adapterClass) throws UnsupportedAdapterException;
 }
