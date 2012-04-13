@@ -19,22 +19,20 @@ import java.io.IOException;
 import java.io.Writer;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Properties;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.*;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.PackageElement;
-import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.*;
 import javax.tools.JavaFileObject;
 import net.pkhsolutions.ceres.common.builder.Buildable;
+import net.pkhsolutions.ceres.common.builder.Buildable.DataPopulationStrategy;
+import net.pkhsolutions.ceres.common.builder.BuilderConstructor;
+import net.pkhsolutions.ceres.common.builder.Getter;
+import net.pkhsolutions.ceres.common.builder.Required;
+import org.apache.commons.lang.StringUtils;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -48,12 +46,11 @@ import org.apache.velocity.app.VelocityEngine;
 public class BuildableAP extends AbstractProcessor {
 
     private VelocityEngine velocityEngine;
-
     private Template constructorBuilderTemplate;
 
     public BuildableAP() {
         super();
-        
+
         URL url = this.getClass().getClassLoader().getResource("net/pkhsolutions/ceres/common/builder/processor/velocity.properties");
         Properties props = new Properties();
         try {
@@ -70,42 +67,150 @@ public class BuildableAP extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         for (Element element : roundEnv.getElementsAnnotatedWith(Buildable.class)) {
-            final TypeElement classElement = (TypeElement) element;
-            try {
-                JavaFileObject jfo = processingEnv.getFiler().createSourceFile(classElement.getQualifiedName() + "Builder");
-
-                VelocityContext vc = new VelocityContext();
-                vc.put("className", classElement.getSimpleName().toString());
-                vc.put("generationDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(new Date()));
-                vc.put("packageName", ((PackageElement) classElement.getEnclosingElement()).getQualifiedName().toString());
-
-                Writer writer = jfo.openWriter();
-                constructorBuilderTemplate.merge(vc, writer);
-                writer.close();
-            } catch (IOException ex) {
-                Logger.getLogger(BuildableAP.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            processType((TypeElement) element);
         }
         return true;
     }
 
-    /*
-     * Properties props = new Properties();
-                URL url = this.getClass().getClassLoader().getResource("velocity.properties");
-                props.load(url.openStream());
+    private void processType(TypeElement type) {
+        final DataPopulationStrategy strategy = type.getAnnotation(Buildable.class).value();
+        if (strategy.equals(DataPopulationStrategy.USE_CONSTRUCTOR_PARAMETERS)) {
+            createConstructorBuilder(type);
+        } else {
+            createFieldBuilder(type);
+        }
+    }
 
-                VelocityEngine ve = new VelocityEngine(props);
-                ve.init();
+    private void createConstructorBuilder(TypeElement type) {
+        ExecutableElement constructor = getBuilderConstructor(type);
+        VelocityContext vc = createAndInitializeVelocityContext(type);
+        vc.put("properties", createPropertyList(constructor.getParameters()));
+        createSourceFile(type, constructorBuilderTemplate, vc);
+    }
 
-                VelocityContext vc = new VelocityContext();
+    private ExecutableElement getBuilderConstructor(TypeElement type) {
+        for (Element e : type.getEnclosedElements()) {
+            if (e.getKind().equals(ElementKind.CONSTRUCTOR) && e.getAnnotation(BuilderConstructor.class) != null) {
+                return (ExecutableElement) e;
+            }
+        }
+        throw new RuntimeException("No constructor annotated with @BuilderConstructor found");
+    }
 
-                vc.put("className", className);
-                vc.put("packageName", packageName);
-                vc.put("fields", fields);
-                vc.put("methods", methods);
+    private void createFieldBuilder(TypeElement type) {
+        // TODO Implement me!
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
 
-                Template vt = ve.getTemplate("beaninfo.vm");
+    private VelocityContext createAndInitializeVelocityContext(TypeElement type) {
+        final VelocityContext vc = new VelocityContext();
+        vc.put("className", type.getSimpleName().toString());
+        vc.put("generationDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(new Date()));
+        vc.put("packageName", getPackage(type).getQualifiedName().toString());
+        return vc;
+    }
+
+    private PackageElement getPackage(TypeElement type) {
+        if (type.getEnclosingElement() instanceof PackageElement) {
+            return (PackageElement) type.getEnclosingElement();
+        } else {
+            throw new RuntimeException("The @Buildable annotation can only be used on top-level types");
+        }
+    }
+
+    private void createSourceFile(TypeElement type, Template template, VelocityContext vc) {
+        try {
+            JavaFileObject jfo = processingEnv.getFiler().createSourceFile(type.getQualifiedName() + "Builder");
+            Writer writer = jfo.openWriter();
+            template.merge(vc, writer);
+            writer.close();
+        } catch (IOException e) {
+            throw new RuntimeException("Could not create source file", e);
+        }
+    }
+
+    private List<Property> createPropertyList(Collection<? extends VariableElement> elements) {
+        ArrayList<Property> list = new ArrayList<Property>(elements.size());
+        for (VariableElement element : elements) {
+            final String name = element.getSimpleName().toString();
+            final boolean required = element.getAnnotation(Required.class) != null;
+            final String typeName = element.asType().toString();
+            final Getter getter = element.getAnnotation(Getter.class);
+            if (getter == null) {
+                list.add(new Property(name, typeName, required));
+            } else {
+                list.add(new Property(name, typeName, required, getter.methodName()));
+            }
+        }
+        return list;
+    }
+
+    /**
+     *
      */
+    public static class Property {
+        private final String name;
+        private final String typeName;
+        private final boolean required;
+        private final String getterName;
 
+        Property(String name, String typeName, boolean required, String getterName) {
+            this.name = name;
+            this.typeName = typeName;
+            this.required = required;
+            this.getterName = getterName;
+        }
+
+        Property(String name, String typeName, boolean required) {
+            this(name, typeName, required, null);
+        }
+
+        /**
+         *
+         * @return
+         */
+        public String getName() {
+            return name;
+        }
+
+        /**
+         *
+         * @return
+         */
+        public String getCapitalizedName() {
+            return StringUtils.capitalize(name);
+        }
+
+        /**
+         *
+         * @return
+         */
+        public String getTypeName() {
+            return typeName;
+        }
+
+        /**
+         *
+         * @return
+         */
+        public boolean isRequired() {
+            return required;
+        }
+
+        /**
+         * 
+         * @return
+         */
+        public String getGetterName() {
+            if (getterName == null) {
+                if (typeName.equals("boolean")) {
+                    return "is" + getCapitalizedName();
+                } else {
+                    return "get" + getCapitalizedName();
+                }
+            }
+            return getterName;
+        }
+    }
 
 }

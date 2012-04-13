@@ -1,14 +1,63 @@
+#macro(commaIfNeeded $index $list)
+#set ( $lastone = $list.size() - 1 )
+#if( $index <= $lastone ),
+#else
+
+#end
+#end
 package ${packageName};
 
 import javax.annotation.Generated;
 import net.pkhsolutions.ceres.common.builder.Builder;
 
 @Generated(value = "net.pkhsolutions.ceres.common.builder.processor.BuildableAP", date = "${generationDate}")
-public class ${className}Builder implements Builder<${className}> {
+public class ${className}Builder implements Builder<${className}, ${className}Builder> {
 
+    public ${className}Builder() {
+    }
 
     @Override
+    public ${className}Builder deriveFrom(${className} original) {
+        if (original == null) {
+            throw new IllegalArgumentException("Original object must not be null");
+        }
+
+#foreach ($property in $properties)
+        set${property.capitalizedName}(original.${property.getterName}());
+#end
+
+        return this;
+    }
+
+#foreach ($property in $properties)
+    private ${property.typeName} ${property.name};
+#if ($property.required)
+    private boolean ${property.name}Set;
+#end
+
+    public ${className}Builder set${property.capitalizedName}(${property.typeName} value) {
+#if ($property.required)
+        this.${property.name}Set = true;
+#end
+        this.${property.name} = value;
+        return this;
+    }
+
+#end
+    @Override
     public ${className} build() {
-        return null;
+#foreach ($property in $properties)
+#if ($property.required)
+        if (!${property.name}Set) {
+            throw new IllegalStateException("Required property ${property.name} has not been set");
+        }
+#end
+#end
+
+        return new ${className}(
+#foreach ($property in $properties)
+            ${property.name}#commaIfNeeded($velocityCount $properties)
+#end
+        );
     }
 }
