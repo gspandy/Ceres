@@ -39,6 +39,17 @@ public class PrincipalHolder extends Holder<Principal> {
     }
 
     /**
+     * Gets the name of the current principal.
+     *
+     * @see Principal#getName()
+     * @return the principal name, or null if not set.
+     */
+    public static String getName() {
+        Principal principal = get();
+        return principal == null ? null : principal.getName();
+    }
+
+    /**
      * Sets the current principal.
      *
      * @param principal the principal to set, may be null.
