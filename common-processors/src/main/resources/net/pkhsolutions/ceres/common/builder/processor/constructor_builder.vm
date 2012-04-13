@@ -1,0 +1,14 @@
+package ${packageName};
+
+import javax.annotation.Generated;
+import net.pkhsolutions.ceres.common.builder.Builder;
+
+@Generated(value = "net.pkhsolutions.ceres.common.builder.processor.BuildableAP", date = "${generationDate}")
+public class ${className}Builder implements Builder<${className}> {
+
+
+    @Override
+    public ${className} build() {
+        return null;
+    }
+}
