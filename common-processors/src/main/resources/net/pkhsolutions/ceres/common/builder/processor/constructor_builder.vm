@@ -7,11 +7,15 @@
 #end
 package ${packageName};
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import javax.annotation.Generated;
 import net.pkhsolutions.ceres.common.builder.Builder;
 
 @Generated(value = "net.pkhsolutions.ceres.common.builder.processor.BuildableAP", date = "${generationDate}")
 public class ${className}Builder implements Builder<${className}, ${className}Builder> {
+
+    protected final PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
 
     public ${className}Builder() {
     }
@@ -31,16 +35,27 @@ public class ${className}Builder implements Builder<${className}, ${className}Bu
 
 #foreach ($property in $properties)
     private ${property.typeName} ${property.name};
+    public static final String PROP_${property.name.toUpperCase()} = "${property.name}";
 #if ($property.required)
     private boolean ${property.name}Set;
 #end
 
     public ${className}Builder set${property.capitalizedName}(${property.typeName} value) {
 #if ($property.required)
+#if ($property.nullable)
+        this.${property.name}Set = (value != null);
+#else
         this.${property.name}Set = true;
 #end
+#end
+        final ${property.typeName} old = this.${property.name};
         this.${property.name} = value;
+        changeSupport.firePropertyChange(PROP_${property.name.toUpperCase()}, old, value);
         return this;
+    }
+
+    public ${property.typeName}#if ($property.typeName =="boolean") is#else get#end${property.capitalizedName}() {
+        return this.${property.name};
     }
 
 #end
@@ -59,5 +74,15 @@ public class ${className}Builder implements Builder<${className}, ${className}Bu
             ${property.name}#commaIfNeeded($velocityCount $properties)
 #end
         );
+    }
+
+    @Override
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        changeSupport.addPropertyChangeListener(listener);
+    }
+
+    @Override
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        changeSupport.removePropertyChangeListener(listener);
     }
 }

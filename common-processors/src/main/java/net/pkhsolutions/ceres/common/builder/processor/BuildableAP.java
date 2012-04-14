@@ -26,6 +26,7 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
+import javax.lang.model.type.TypeKind;
 import javax.tools.JavaFileObject;
 import net.pkhsolutions.ceres.common.builder.Buildable;
 import net.pkhsolutions.ceres.common.builder.Buildable.DataPopulationStrategy;
@@ -85,7 +86,7 @@ public class BuildableAP extends AbstractProcessor {
         ExecutableElement constructor = getBuilderConstructor(type);
         VelocityContext vc = createAndInitializeVelocityContext(type);
         vc.put("properties", createPropertyList(constructor.getParameters()));
-        createSourceFile(type, constructorBuilderTemplate, vc);
+        createSourceFile(type.getQualifiedName() + "Builder", constructorBuilderTemplate, vc);
     }
 
     private ExecutableElement getBuilderConstructor(TypeElement type) {
@@ -118,9 +119,9 @@ public class BuildableAP extends AbstractProcessor {
         }
     }
 
-    private void createSourceFile(TypeElement type, Template template, VelocityContext vc) {
+    private void createSourceFile(String fileName, Template template, VelocityContext vc) {
         try {
-            JavaFileObject jfo = processingEnv.getFiler().createSourceFile(type.getQualifiedName() + "Builder");
+            JavaFileObject jfo = processingEnv.getFiler().createSourceFile(fileName);
             Writer writer = jfo.openWriter();
             template.merge(vc, writer);
             writer.close();
@@ -135,11 +136,12 @@ public class BuildableAP extends AbstractProcessor {
             final String name = element.getSimpleName().toString();
             final boolean required = element.getAnnotation(Required.class) != null;
             final String typeName = element.asType().toString();
+            final boolean nullable = element.asType().getKind() == TypeKind.DECLARED;
             final Getter getter = element.getAnnotation(Getter.class);
             if (getter == null) {
-                list.add(new Property(name, typeName, required));
+                list.add(new Property(name, typeName, required, nullable));
             } else {
-                list.add(new Property(name, typeName, required, getter.methodName()));
+                list.add(new Property(name, typeName, required, nullable, getter.methodName()));
             }
         }
         return list;
@@ -152,17 +154,19 @@ public class BuildableAP extends AbstractProcessor {
         private final String name;
         private final String typeName;
         private final boolean required;
+        private final boolean nullable;
         private final String getterName;
 
-        Property(String name, String typeName, boolean required, String getterName) {
+        Property(String name, String typeName, boolean required,  boolean nullable, String getterName) {
             this.name = name;
             this.typeName = typeName;
             this.required = required;
+            this.nullable = nullable;
             this.getterName = getterName;
         }
 
-        Property(String name, String typeName, boolean required) {
-            this(name, typeName, required, null);
+        Property(String name, String typeName, boolean required, boolean nullable) {
+            this(name, typeName, required, nullable, null);
         }
 
         /**
@@ -198,7 +202,14 @@ public class BuildableAP extends AbstractProcessor {
         }
 
         /**
-         * 
+         *
+         */
+        public boolean isNullable() {
+            return nullable;
+        }
+
+        /**
+         *
          * @return
          */
         public String getGetterName() {
