@@ -21,11 +21,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * This annotation is used to specify which constructor the annotation processor
+ * should analyze when using constructor parameters to populate a buildable
+ * object.
  *
- * @author petter
+ * @see Buildable#populationStrategy()
+ *
+ * @author Petter Holmström
+ * @since 1.0
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.CONSTRUCTOR)
 public @interface BuilderConstructor {
-
 }
