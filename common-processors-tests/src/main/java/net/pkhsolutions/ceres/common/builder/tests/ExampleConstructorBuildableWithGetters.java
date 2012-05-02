@@ -21,35 +21,17 @@ import net.pkhsolutions.ceres.common.builder.Getter;
 import net.pkhsolutions.ceres.common.builder.Required;
 
 /**
- * Example class whose auto-generated builder uses constructor parameters to
- * initialize new objects.
+ * Example class whose auto-generated builder uses constructor parameters and
+ * has getter methods.
  *
  * @author Petter Holmström
  * @since 1.0
  */
-@Buildable()
-public class ExampleConstructorBuildable {
-
-    private final String myStringProp;
-    private final int myIntProp;
-    private final boolean myBoolProp;
+@Buildable(generateGetters = true)
+public class ExampleConstructorBuildableWithGetters extends ExampleConstructorBuildable {
 
     @BuilderConstructor
-    public ExampleConstructorBuildable(@Required String myStringProp, @Getter(methodName = "myIntProp") @Required int myIntProp, boolean myBoolProp) {
-        this.myStringProp = myStringProp;
-        this.myIntProp = myIntProp;
-        this.myBoolProp = myBoolProp;
-    }
-
-    public int myIntProp() {
-        return myIntProp;
-    }
-
-    public String getMyStringProp() {
-        return myStringProp;
-    }
-
-    public boolean isMyBoolProp() {
-        return myBoolProp;
+    public ExampleConstructorBuildableWithGetters(@Required String myStringProp, @Getter(methodName = "myIntProp") @Required int myIntProp, boolean myBoolProp) {
+        super(myStringProp, myIntProp, myBoolProp);
     }
 }
