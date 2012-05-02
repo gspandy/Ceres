@@ -1,0 +1,143 @@
+package ${packageName};
+
+#if ($bindable)
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+#end
+import java.lang.reflect.Field;
+import javax.annotation.Generated;
+#if ($bindable)
+import net.pkhsolutions.ceres.common.builder.BindableBuilder;
+#else
+import net.pkhsolutions.ceres.common.builder.Builder;
+#end
+
+/**
+ * Auto-generated builder for building {@link ${className}}-instances.
+ */
+@Generated(value = "net.pkhsolutions.ceres.common.builder.processor.BuildableAP", date = "${generationDate}")
+public class ${className}Builder implements#if($bindable) BindableBuilder#else Builder#end<${className}, ${className}Builder> {
+
+#if ($bindable)
+    protected final PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
+#end
+
+    public ${className}Builder() {
+    }
+
+    @Override
+    public ${className}Builder deriveFrom(${className} original) {
+        if (original == null) {
+            throw new IllegalArgumentException("Original object must not be null");
+        }
+
+#foreach ($property in $properties)
+        set${property.capitalizedName}( (${property.boxedTypeName}) getFieldValue("${property.name}"));
+#end
+
+        return this;
+    }
+
+#foreach ($property in $properties)
+    private ${property.typeName} ${property.name};
+    public static final String PROP_${property.name.toUpperCase()} = "${property.name}";
+#if ($property.required)
+    private boolean ${property.name}Set;
+#end
+
+    public ${className}Builder set${property.capitalizedName}(${property.typeName} value) {
+#if ($property.required)
+#if ($property.nullable)
+        this.${property.name}Set = (value != null);
+#else
+        this.${property.name}Set = true;
+#end
+#end
+#if ($bindable)
+        final ${property.typeName} old = this.${property.name};
+#end
+        this.${property.name} = value;
+#if ($bindable)
+        changeSupport.firePropertyChange(PROP_${property.name.toUpperCase()}, old, value);
+#end
+        return this;
+    }
+
+#if ($generateGetters)
+    public ${property.typeName}#if ($property.typeName =="boolean") is#else get#end${property.capitalizedName}() {
+        return this.${property.name};
+    }
+#end
+#end
+    @Override
+    public ${className} build() {
+#foreach ($property in $properties)
+#if ($property.required)
+        if (!${property.name}Set) {
+            throw new IllegalStateException("Required property ${property.name} has not been set");
+        }
+#end
+#end
+
+        ${className} obj = new ${className}();
+#foreach ($property in $properties)
+        setFieldValue("${property.name}", this.${property.name});
+#end
+        return obj;
+    }
+
+#if ($bindable)
+    @Override
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        changeSupport.addPropertyChangeListener(listener);
+    }
+
+    @Override
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        changeSupport.removePropertyChangeListener(listener);
+    }
+#end
+
+    private Object getFieldValue(String fieldName) {
+        try {
+            Field f = getClass().getField(fieldName);
+            final boolean oldAccessible = f.isAccessible();
+            try {
+                return f.get(this);
+            } finally {
+                f.setAccessible(oldAccessible);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Could not read value of field " + fieldName, e);
+        }
+    }
+
+    private void setFieldValue(String fieldName, Object value) {
+        try {
+            Field f = getClass().getField(fieldName);
+            final boolean oldAccessible = f.isAccessible();
+            try {
+                f.set(this, value);
+            } finally {
+                f.setAccessible(oldAccessible);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Could not write value to field " + fieldName, e);
+        }
+    }
+
+    /**
+     * Creates and returns a new, empty <code>${className}Builder</code> instance.
+     */
+    public static ${className}Builder create() {
+        return new ${className}Builder();
+    }
+
+    /**
+     * Creates and returns a new <code>${className}Builder</code> instance 
+     * that has been initialized with the values of the specified <code>original</code> object.
+     */
+    public static ${className}Builder create(${className} original) {
+        return new ${className}Builder().deriveFrom(original);
+    }
+}
