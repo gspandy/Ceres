@@ -7,15 +7,26 @@
 #end
 package ${packageName};
 
+#if ($bindable)
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+#end
 import javax.annotation.Generated;
+#if ($bindable)
+import net.pkhsolutions.ceres.common.builder.BindableBuilder;
+#else
 import net.pkhsolutions.ceres.common.builder.Builder;
+#end
 
+/**
+ * Auto-generated builder for building {@link ${className}}-instances.
+ */
 @Generated(value = "net.pkhsolutions.ceres.common.builder.processor.BuildableAP", date = "${generationDate}")
-public class ${className}Builder implements Builder<${className}, ${className}Builder> {
+public class ${className}Builder implements#if($bindable) BindableBuilder#else Builder#end<${className}, ${className}Builder> {
 
+#if ($bindable)
     protected final PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
+#end
 
     public ${className}Builder() {
     }
@@ -48,16 +59,21 @@ public class ${className}Builder implements Builder<${className}, ${className}Bu
         this.${property.name}Set = true;
 #end
 #end
+#if ($bindable)
         final ${property.typeName} old = this.${property.name};
+#end
         this.${property.name} = value;
+#if ($bindable)
         changeSupport.firePropertyChange(PROP_${property.name.toUpperCase()}, old, value);
+#end
         return this;
     }
 
+#if ($generateGetters)
     public ${property.typeName}#if ($property.typeName =="boolean") is#else get#end${property.capitalizedName}() {
         return this.${property.name};
     }
-
+#end
 #end
     @Override
     public ${className} build() {
@@ -76,6 +92,7 @@ public class ${className}Builder implements Builder<${className}, ${className}Bu
         );
     }
 
+#if ($bindable)
     @Override
     public void addPropertyChangeListener(PropertyChangeListener listener) {
         changeSupport.addPropertyChangeListener(listener);
@@ -84,5 +101,21 @@ public class ${className}Builder implements Builder<${className}, ${className}Bu
     @Override
     public void removePropertyChangeListener(PropertyChangeListener listener) {
         changeSupport.removePropertyChangeListener(listener);
+    }
+#end
+
+    /**
+     * Creates and returns a new, empty <code>${className}Builder</code> instance.
+     */
+    public static ${className}Builder create() {
+        return new ${className}Builder();
+    }
+
+    /**
+     * Creates and returns a new <code>${className}Builder</code> instance 
+     * that has been initialized with the values of the specified <code>original</code> object.
+     */
+    public static ${className}Builder create(${className} original) {
+        return new ${className}Builder().deriveFrom(original);
     }
 }

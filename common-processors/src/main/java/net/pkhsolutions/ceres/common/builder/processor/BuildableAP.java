@@ -74,7 +74,7 @@ public class BuildableAP extends AbstractProcessor {
     }
 
     private void processType(TypeElement type) {
-        final DataPopulationStrategy strategy = type.getAnnotation(Buildable.class).value();
+        final DataPopulationStrategy strategy = type.getAnnotation(Buildable.class).populationStrategy();
         if (strategy.equals(DataPopulationStrategy.USE_CONSTRUCTOR_PARAMETERS)) {
             createConstructorBuilder(type);
         } else {
@@ -108,6 +108,8 @@ public class BuildableAP extends AbstractProcessor {
         vc.put("className", type.getSimpleName().toString());
         vc.put("generationDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(new Date()));
         vc.put("packageName", getPackage(type).getQualifiedName().toString());
+        vc.put("bindable", type.getAnnotation(Buildable.class).bindable());
+        vc.put("generateGetters", type.getAnnotation(Buildable.class).generateGetters());
         return vc;
     }
 
