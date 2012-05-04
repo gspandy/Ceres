@@ -27,28 +27,39 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.ElementFilter;
+import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
-import net.pkhsolutions.ceres.common.builder.Buildable;
 import net.pkhsolutions.ceres.common.builder.Buildable.DataPopulationStrategy;
-import net.pkhsolutions.ceres.common.builder.BuilderConstructor;
-import net.pkhsolutions.ceres.common.builder.Getter;
-import net.pkhsolutions.ceres.common.builder.Required;
+import net.pkhsolutions.ceres.common.builder.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
 /**
+ * This is an annotation processor that generates builders for classes annotated
+ * with
+ * {@link Buildable}. Clients should never use this class directly.
  *
- * @author petter
+ * @author Petter Holmström
+ * @since 1.0
  */
 @SupportedAnnotationTypes("net.pkhsolutions.ceres.common.builder.Buildable")
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
-public class BuildableAP extends AbstractProcessor {
+public final class BuildableAP extends AbstractProcessor {
 
+    // TODO Some of the methods in this class could use some refactoring.
     private VelocityEngine velocityEngine;
     private Template constructorBuilderTemplate;
+    private Template fieldBuilderTemplate;
 
+    /**
+     * Constructs a new
+     * <code>BuildableAP</code>. Clients should never need to create instances
+     * of this class.
+     */
     public BuildableAP() {
         super();
 
@@ -63,6 +74,7 @@ public class BuildableAP extends AbstractProcessor {
         velocityEngine.init();
 
         constructorBuilderTemplate = velocityEngine.getTemplate("net/pkhsolutions/ceres/common/builder/processor/constructor_builder.vm");
+        fieldBuilderTemplate = velocityEngine.getTemplate("net/pkhsolutions/ceres/common/builder/processor/field_builder.vm");
     }
 
     @Override
@@ -99,8 +111,21 @@ public class BuildableAP extends AbstractProcessor {
     }
 
     private void createFieldBuilder(TypeElement type) {
-        // TODO Implement me!
-        throw new UnsupportedOperationException("Not implemented yet");
+        VelocityContext vc = createAndInitializeVelocityContext(type);
+        vc.put("properties", createPropertyList(getFields(type)));
+        createSourceFile(type.getQualifiedName() + "Builder", fieldBuilderTemplate, vc);
+    }
+
+    private Collection<VariableElement> getFields(TypeElement type) {
+        final Set<Element> elements = new HashSet<Element>();
+        elements.addAll(type.getEnclosedElements());
+        TypeMirror supertype = type.getSuperclass();
+        while (supertype.getKind() != TypeKind.NONE) {
+            final TypeElement element = (TypeElement) processingEnv.getTypeUtils().asElement(supertype);
+            elements.addAll(element.getEnclosedElements());
+            supertype = element.getSuperclass();
+        }
+        return ElementFilter.fieldsIn(elements);
     }
 
     private VelocityContext createAndInitializeVelocityContext(TypeElement type) {
@@ -135,95 +160,113 @@ public class BuildableAP extends AbstractProcessor {
     private List<Property> createPropertyList(Collection<? extends VariableElement> elements) {
         ArrayList<Property> list = new ArrayList<Property>(elements.size());
         for (VariableElement element : elements) {
-            final String name = element.getSimpleName().toString();
-            final boolean required = element.getAnnotation(Required.class) != null;
-            final String typeName = element.asType().toString();
-            final boolean nullable = element.asType().getKind() == TypeKind.DECLARED;
-            final Getter getter = element.getAnnotation(Getter.class);
-            if (getter == null) {
-                list.add(new Property(name, typeName, required, nullable));
-            } else {
-                list.add(new Property(name, typeName, required, nullable, getter.methodName()));
+            if (isValidPropertyElement(element)) {
+                list.add(new Property(element));
             }
         }
         return list;
     }
 
-    /**
-     *
-     */
-    public static class Property {
-        private final String name;
-        private final String typeName;
-        private final boolean required;
-        private final boolean nullable;
-        private final String getterName;
-
-        Property(String name, String typeName, boolean required,  boolean nullable, String getterName) {
-            this.name = name;
-            this.typeName = typeName;
-            this.required = required;
-            this.nullable = nullable;
-            this.getterName = getterName;
+    private boolean isValidPropertyElement(VariableElement element) {
+        if (element.getEnclosingElement().getKind() == ElementKind.CONSTRUCTOR) {
+            return true;
+        } else {
+            return ((element.getAnnotation(Ignore.class) == null)
+                    && (!element.getModifiers().contains(Modifier.STATIC))
+                    && (!element.getModifiers().contains(Modifier.FINAL)));
         }
+    }
 
-        Property(String name, String typeName, boolean required, boolean nullable) {
-            this(name, typeName, required, nullable, null);
+    /**
+     * This class is used to pass information from the annotation processor to
+     * the template engine. It is intended for internal use only and should
+     * never be used by clients.
+     *
+     * @author Petter Holmström
+     * @since 1.0
+     */
+    public final class Property {
+
+        private final VariableElement element;
+
+        Property(VariableElement element) {
+            this.element = element;
         }
 
         /**
-         *
-         * @return
+         * Returns the name of the property.
          */
         public String getName() {
-            return name;
+            return element.getSimpleName().toString();
         }
 
         /**
-         *
-         * @return
+         * Returns the capitalized name of the property.
          */
         public String getCapitalizedName() {
-            return StringUtils.capitalize(name);
+            return StringUtils.capitalize(getName());
         }
 
         /**
-         *
-         * @return
+         * Returns the name of the type of the property.
          */
         public String getTypeName() {
-            return typeName;
+            return element.asType().toString();
         }
 
         /**
-         *
-         * @return
+         * Returns whether the property is required or not.
          */
         public boolean isRequired() {
-            return required;
+            return element.getAnnotation(Required.class) != null;
         }
 
         /**
-         *
+         * Returns whether the required property can be set to null.
+         */
+        public boolean isNullAllowed() {
+            final Required required = element.getAnnotation(Required.class);
+            return required != null && required.allowNulls();
+        }
+
+        /**
+         * Returns whether the property can be set to null or not (it is not a
+         * primitive type).
          */
         public boolean isNullable() {
-            return nullable;
+            return element.asType().getKind() == TypeKind.DECLARED;
         }
 
         /**
-         *
-         * @return
+         * Returns the name of the getter method that returns the value of the
+         * property.
          */
         public String getGetterName() {
-            if (getterName == null) {
-                if (typeName.equals("boolean")) {
+            final Getter getter = element.getAnnotation(Getter.class);
+            if (getter == null) {
+                if (getTypeName().equals("boolean")) {
                     return "is" + getCapitalizedName();
                 } else {
                     return "get" + getCapitalizedName();
                 }
             }
-            return getterName;
+            return getter.methodName();
+        }
+
+        /**
+         * Returns the boxed type name, or the type name if it cannot be boxed.
+         */
+        public String getBoxedTypeName() {
+            return getBoxedTypeName(element);
+        }
+
+        private String getBoxedTypeName(VariableElement element) {
+            try {
+                final Types utils = processingEnv.getTypeUtils();
+                return utils.boxedClass(utils.getPrimitiveType(element.asType().getKind())).asType().toString();
+            } catch (IllegalArgumentException e) {
+            }
+            return element.asType().toString();
         }
     }
-
 }

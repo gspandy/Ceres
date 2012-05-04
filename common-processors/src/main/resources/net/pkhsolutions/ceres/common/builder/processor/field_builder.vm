@@ -11,6 +11,7 @@ import net.pkhsolutions.ceres.common.builder.BindableBuilder;
 #else
 import net.pkhsolutions.ceres.common.builder.Builder;
 #end
+import org.apache.commons.lang.reflect.FieldUtils;
 
 /**
  * Auto-generated builder for building {@link ${className}}-instances.
@@ -32,7 +33,7 @@ public class ${className}Builder implements#if($bindable) BindableBuilder#else B
         }
 
 #foreach ($property in $properties)
-        set${property.capitalizedName}( (${property.boxedTypeName}) getFieldValue("${property.name}"));
+        set${property.capitalizedName}( (${property.boxedTypeName}) getFieldValue(original, "${property.name}"));
 #end
 
         return this;
@@ -47,7 +48,7 @@ public class ${className}Builder implements#if($bindable) BindableBuilder#else B
 
     public ${className}Builder set${property.capitalizedName}(${property.typeName} value) {
 #if ($property.required)
-#if ($property.nullable)
+#if ($property.nullable && !$property.nullAllowed)
         this.${property.name}Set = (value != null);
 #else
         this.${property.name}Set = true;
@@ -81,7 +82,7 @@ public class ${className}Builder implements#if($bindable) BindableBuilder#else B
 
         ${className} obj = new ${className}();
 #foreach ($property in $properties)
-        setFieldValue("${property.name}", this.${property.name});
+        setFieldValue(obj, "${property.name}", this.${property.name});
 #end
         return obj;
     }
@@ -98,12 +99,12 @@ public class ${className}Builder implements#if($bindable) BindableBuilder#else B
     }
 #end
 
-    private Object getFieldValue(String fieldName) {
+    private Object getFieldValue(Object target, String fieldName) {
         try {
-            Field f = getClass().getField(fieldName);
+            Field f = FieldUtils.getField(${className}.class, fieldName, true);
             final boolean oldAccessible = f.isAccessible();
             try {
-                return f.get(this);
+                return f.get(target);
             } finally {
                 f.setAccessible(oldAccessible);
             }
@@ -112,12 +113,12 @@ public class ${className}Builder implements#if($bindable) BindableBuilder#else B
         }
     }
 
-    private void setFieldValue(String fieldName, Object value) {
+    private void setFieldValue(Object target, String fieldName, Object value) {
         try {
-            Field f = getClass().getField(fieldName);
+            Field f = FieldUtils.getField(${className}.class, fieldName, true);
             final boolean oldAccessible = f.isAccessible();
             try {
-                f.set(this, value);
+                f.set(target, value);
             } finally {
                 f.setAccessible(oldAccessible);
             }

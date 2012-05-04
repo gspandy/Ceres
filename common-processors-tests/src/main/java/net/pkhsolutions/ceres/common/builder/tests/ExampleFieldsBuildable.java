@@ -15,10 +15,50 @@
  */
 package net.pkhsolutions.ceres.common.builder.tests;
 
+import net.pkhsolutions.ceres.common.builder.Buildable;
+import net.pkhsolutions.ceres.common.builder.Ignore;
+import net.pkhsolutions.ceres.common.builder.Required;
+
 /**
+ * Example class whose auto-generated builder uses fields to initialize new
+ * objects.
  *
- * @author petter
+ * @author Petter Holmström
+ * @since 1.0
  */
+@Buildable(populationStrategy = Buildable.DataPopulationStrategy.USE_FIELDS)
 public class ExampleFieldsBuildable {
 
+    @Required(allowNulls = true)
+    private String myStringProp;
+    private int myIntProp;
+    private boolean myBoolProp;
+    @Ignore
+    private String myIgnoredProp;
+
+    public ExampleFieldsBuildable() {
+    }
+
+    public ExampleFieldsBuildable(String myStringProp, int myIntProp, boolean myBoolProp, String myIgnoredProp) {
+        this.myStringProp = myStringProp;
+        this.myIntProp = myIntProp;
+        this.myBoolProp = myBoolProp;
+        this.myIgnoredProp = myIgnoredProp;
+    }
+
+    public int myIntProp() {
+        return myIntProp;
+    }
+
+    public String getMyStringProp() {
+        return myStringProp;
+    }
+
+    public boolean isMyBoolProp() {
+        return myBoolProp;
+    }
+
+    public String getMyIgnoredProp() {
+        return myIgnoredProp;
+    }
 }
