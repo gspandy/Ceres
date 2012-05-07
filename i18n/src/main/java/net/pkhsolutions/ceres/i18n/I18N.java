@@ -33,7 +33,7 @@ import net.pkhsolutions.ceres.eventbus.EventBusHolder;
  * @author Petter Holmström
  * @since 1.0
  */
-public interface I18N {
+public interface I18N extends java.io.Serializable {
 
     /**
      * Gets the current locale.
