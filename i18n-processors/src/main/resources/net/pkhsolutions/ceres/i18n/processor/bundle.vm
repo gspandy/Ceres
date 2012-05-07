@@ -1,0 +1,25 @@
+package ${packageName};
+
+import java.text.MessageFormat;
+import java.util.Locale;
+import java.util.ResourceBundle;
+import javax.annotation.Generated;
+
+@Generated(value = "net.pkhsolutions.ceres.i18n.processor.MessageClassAP", date = "${generationDate}")
+public final class Bundle extends net.pkhsolutions.ceres.i18n.Bundle {
+
+    private Bundle() {}
+
+#foreach ($property in $properties)
+    public static String $property.replace('.','_')(String... args) {
+        return getMessage("$property", args);
+    }
+
+#end
+    public static String getMessage(String key, String... args) {
+        final Locale locale = getI18N().getCurrentLocale();
+        final ResourceBundle bundle = ResourceBundle.getBundle("messages", locale, Bundle.class.getClassLoader());
+        final MessageFormat mf = new MessageFormat(bundle.getString(key), locale);
+        return mf.format(args, new StringBuffer(), null).toString();
+    }
+}
