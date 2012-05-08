@@ -15,10 +15,12 @@ public final class Bundle extends net.pkhsolutions.ceres.i18n.Bundle {
         return getMessage("$property", args);
     }
 
+    public static final String $property.replace('.','_').toUpperCase() = "$property";
+
 #end
     public static String getMessage(String key, Object... args) {
         final Locale locale = getI18N().getCurrentLocale();
-        final ResourceBundle bundle = ResourceBundle.getBundle("messages", locale, Bundle.class.getClassLoader());
+        final ResourceBundle bundle = ResourceBundle.getBundle("${packageName}.messages", locale);
         final MessageFormat mf = new MessageFormat(bundle.getString(key), locale);
         return mf.format(args, new StringBuffer(), null).toString();
     }

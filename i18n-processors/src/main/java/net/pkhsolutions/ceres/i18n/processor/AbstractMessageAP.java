@@ -101,7 +101,7 @@ public abstract class AbstractMessageAP extends AbstractProcessor {
         synchronized (AbstractMessageAP.class) {
             FileObject fo = fileObjects.get(mapKey);
             if (fo == null) {
-                fo = filer.getResource(StandardLocation.SOURCE_OUTPUT, packageName, fileName);
+                fo = filer.getResource(StandardLocation.CLASS_OUTPUT, packageName, fileName);
                 fileObjects.put(mapKey, fo);
             }
             return fo;
@@ -120,7 +120,7 @@ public abstract class AbstractMessageAP extends AbstractProcessor {
         synchronized (AbstractMessageAP.class) {
             FileObject fo = fileObjects.get(mapKey);
             if (fo == null) {
-                fo = filer.createResource(StandardLocation.SOURCE_OUTPUT, packageName, fileName);
+                fo = filer.createResource(StandardLocation.CLASS_OUTPUT, packageName, fileName);
                 fileObjects.put(mapKey, fo);
             }
             return fo;
